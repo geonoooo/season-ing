@@ -42,6 +42,16 @@ async function coord2Address(lat, lng) {
   return best?.road_address?.address_name || best?.address?.address_name || null;
 }
 
+async function searchAddress(query) {
+  const params = new URLSearchParams({ query, size: "5" });
+  const res = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?${params}`, {
+    headers,
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.documents?.[0] ?? null;
+}
+
 const lastCategorySegment = (categoryName) =>
   categoryName.split(">").at(-1)?.trim() || categoryName || "회";
 
@@ -487,6 +497,26 @@ const SHOP_TARGETS = [
     likes: 29,
   },
   {
+    query: "대찬횟집 선릉직영점",
+    fallbackQueries: ["대찬횟집 선릉", "선릉로86길 16-3"],
+    addressFilter: "선릉로86길",
+    manualFallback: {
+      id: "20518588",
+      name: "대찬횟집 선릉직영점",
+      address: "서울 강남구 선릉로86길 16-3",
+      phone: "02-2051-8588",
+      category: "회",
+    },
+    tags: ["선릉 대방어 성지", "두툼한 숙성회", "회식 · 모임 추천", "예약 필수"],
+    likes: 54,
+  },
+  {
+    query: "대찬횟집 교대점",
+    fallbackQueries: ["대찬횟집"],
+    tags: ["교대 대방어 맛집", "두툼한 숙성회", "스끼다시 푸짐", "회식 추천"],
+    likes: 36,
+  },
+  {
     query: "다동 미진일식",
     tags: ["숙성 대방어", "깔끔한 상차림", "시청 직장인 맛집"],
     likes: 18,
@@ -497,19 +527,99 @@ const SHOP_TARGETS = [
     likes: 22,
   },
   {
-    query: "바다회사랑 서교",
+    query: "바다회사랑 연남본점",
+    fallbackQueries: ["바다회사랑 연남점", "동교로27길 60"],
+    addressFilter: "동교로27길",
+    manualFallback: {
+      id: "1466527908",
+      name: "바다회사랑 연남본점",
+      address: "서울 마포구 동교로27길 60",
+      phone: "02-338-0872",
+      category: "회",
+    },
+    tags: ["서울 대방어 1티어", "두툼한 대방어", "날치알 초대리밥", "오픈런 필수"],
+    likes: 65,
+  },
+  {
+    query: "바다회사랑 서교점",
+    fallbackQueries: ["홍대 바다회사랑", "바다회사랑"],
     tags: ["서울 대방어 성지", "두툼한 대방어", "지하 대기실", "포장 빨라요"],
     likes: 64,
   },
   {
     query: "합정광안리",
     tags: ["10kg 특대방어", "숙성회 맛집", "기름기 좔좔"],
+    likes: 46,
+  },
+  // 망원동 · 마포 대방어 유명 맛집 10선+
+  {
+    query: "망원 우리바다수산",
+    tags: ["망원 대방어 1티어", "뱃살 비율 높음", "가성비 대방어", "웨이팅 필수"],
+    likes: 61,
+  },
+  {
+    query: "21세기 우리바다수산",
+    tags: ["홍대·망원 대방어", "두툼한 뱃살", "가성비 횟집", "웨이팅 맛집"],
+    likes: 48,
+  },
+  {
+    query: "마포밤바다",
+    tags: ["망원 대방어 맛집", "해산물 한상차림", "초밥용 샤리", "분위기 좋아요"],
+    likes: 44,
+  },
+  {
+    query: "망원 오복수산시장",
+    fallbackQueries: ["망원동 오복수산"],
+    tags: ["망원 대방어 성지", "두툼하게 썰어줌", "가성비 모둠회", "포장 가능해요"],
+    likes: 41,
+  },
+  {
+    query: "망원 369활어회",
+    tags: ["망원시장 포장", "가성비 대방어", "양 푸짐해요"],
+    likes: 38,
+  },
+  {
+    query: "망원 어수선",
+    tags: ["망원동 방어 맛집", "신선한 활어 · 방어", "초밥 · 회 맛집"],
+    likes: 36,
+  },
+  {
+    query: "망원동 파도 횟집",
+    fallbackQueries: ["망원 파도"],
+    tags: ["망리단길 대방어", "숙성 대방어", "분위기 좋아요"],
     likes: 35,
   },
   {
-    query: "망원 우리바다수산",
-    tags: ["뱃살 비율 높음", "가성비 대방어", "동네 숨은 성지"],
+    query: "망원동 식해",
+    fallbackQueries: ["망원 식해"],
+    tags: ["숙성 대방어", "망원 술집 성지", "기름기 좔좔"],
+    likes: 34,
+  },
+  {
+    query: "망원 산이네회무침",
+    tags: ["망원동 노포", "제철 회 · 무침", "술안주 최고"],
     likes: 31,
+  },
+  {
+    query: "망원 용머리횟집",
+    tags: ["망원 로컬 노포", "두툼한 제철 방어", "매운탕 맛집"],
+    likes: 29,
+  },
+  {
+    query: "망원 완도막회집",
+    fallbackQueries: ["마포 완도막회집"],
+    tags: ["제철 방어 막회", "가성비 최고", "동네 단골 성지"],
+    likes: 30,
+  },
+  {
+    query: "연남동 방어",
+    tags: ["연트럴파크 맛집", "숙성 대방어", "데이트 코스"],
+    likes: 34,
+  },
+  {
+    query: "신촌 삼해횟집",
+    tags: ["두툼한 대방어", "스끼다시 푸짐", "신촌 노포 성지"],
+    likes: 39,
   },
   {
     query: "논현 보물섬",
@@ -588,6 +698,11 @@ const SHOP_TARGETS = [
   },
   // 가락시장(가락몰) & 문정동 대방어 성지
   {
+    query: "가락시장 용기수산",
+    tags: ["가락시장 1티어", "대방어 오마카세", "특수부위 구성", "두툼하게 썰어줌"],
+    likes: 62,
+  },
+  {
     query: "가락시장 온달수산",
     tags: ["가락몰 1티어", "돼지방어 성지", "특수부위 푸짐", "두툼하게 썰어줌"],
     likes: 56,
@@ -616,8 +731,10 @@ const SHOP_TARGETS = [
 
 const AREA_RECTS = [
   "126.960,37.555,127.000,37.580", // 시청/광화문/종각/을지로/명동
+  "126.895,37.548,126.915,37.565", // 망원/마포구청/성산
   "126.910,37.545,126.935,37.568", // 홍대/연남/합정
   "127.020,37.495,127.040,37.512", // 강남/신논현/역삼
+  "127.040,37.498,127.062,37.512", // 선릉/역삼/대치
   "127.105,37.475,127.140,37.505", // 가락시장/문정/경찰병원/장지
 ];
 
@@ -652,9 +769,49 @@ console.log("2. 대방어 맛집 카카오 플레이스 정보 수집 중...");
 const shopsById = new Map();
 
 for (const target of SHOP_TARGETS) {
-  const docs = await searchKeyword(target.query);
-  const top = docs.find(isSeafoodPlace) || docs[0];
-  if (!top) continue;
+  const candidateQueries = [target.query, ...(target.fallbackQueries || [])];
+  let top = null;
+  const matchesAddr = (d) =>
+    !target.addressFilter ||
+    (d.road_address_name || "").includes(target.addressFilter) ||
+    (d.address_name || "").includes(target.addressFilter);
+
+  for (const q of candidateQueries) {
+    const docs = await searchKeyword(q);
+    top = target.manualFallback
+      ? docs.find((d) => !shopsById.has(d.id) && isSeafoodPlace(d) && matchesAddr(d))
+      : docs.find((d) => !shopsById.has(d.id) && isSeafoodPlace(d) && matchesAddr(d)) ||
+        docs.find((d) => !shopsById.has(d.id) && matchesAddr(d));
+    if (top) break;
+  }
+
+  if (!top && target.manualFallback) {
+    const addrDoc = await searchAddress(target.manualFallback.address);
+    if (addrDoc) {
+      const fb = target.manualFallback;
+      console.log(`  [주소매칭] ${target.query} -> ${fb.name} (${fb.address})`);
+      shopsById.set(fb.id, {
+        kakaoPlaceId: fb.id,
+        name: fb.name,
+        kakaoCategory: fb.category,
+        phone: fb.phone || null,
+        address: fb.address,
+        lat: Number(addrDoc.y),
+        lng: Number(addrDoc.x),
+        tags: target.tags,
+        likes: target.likes,
+      });
+      continue;
+    }
+  }
+
+  if (!top) {
+    console.log(`  [미매칭] ${target.query}`);
+    continue;
+  }
+  console.log(
+    `  [매칭] ${target.query} -> ${top.place_name} (${top.road_address_name || top.address_name})`,
+  );
   shopsById.set(top.id, {
     kakaoPlaceId: top.id,
     name: top.place_name,
@@ -812,9 +969,16 @@ const migrationSqlPath = path.join(
   "migrations",
   "20261106020000_seed_places.sql",
 );
+const extraMigrationSqlPath = path.join(
+  rootDir,
+  "supabase",
+  "migrations",
+  "20261106030000_seed_more_bangeo.sql",
+);
 fs.writeFileSync(seedSqlPath, seedSql, "utf8");
 fs.writeFileSync(migrationSqlPath, seedSql, "utf8");
+fs.writeFileSync(extraMigrationSqlPath, seedSql, "utf8");
 console.log(
-  `완료: 붕어빵 노점 ${stalls.length}곳, 방어 맛집 ${shops.length}곳 -> ${seedSqlPath} & ${migrationSqlPath}`,
+  `완료: 붕어빵 노점 ${stalls.length}곳, 방어 맛집 ${shops.length}곳 -> ${seedSqlPath}, ${migrationSqlPath}, ${extraMigrationSqlPath}`,
 );
 

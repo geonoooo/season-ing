@@ -723,6 +723,10 @@ const sqlLines = [
     .join(",\n") + "\non conflict (id) do nothing;",
   "",
   "-- 2. 붕어빵 노점 (kind = 'stall', category = 'bungeoppang')",
+  "delete from public.place_tags where place_id in (select id from public.places where id::text like '10000000-0000-4000-8000-%');",
+  "delete from public.place_likes where place_id in (select id from public.places where id::text like '10000000-0000-4000-8000-%');",
+  "delete from public.stall_checks where place_id in (select id from public.places where id::text like '10000000-0000-4000-8000-%');",
+  "",
 ];
 
 stalls.forEach((stall, idx) => {
@@ -768,11 +772,10 @@ stalls.forEach((stall, idx) => {
 sqlLines.push("-- 3. 방어 맛집 (kind = 'shop', category = 'bangeo')");
 
 shops.forEach((shop, idx) => {
-  const placeId = uuidOf("20000000", idx);
   sqlLines.push(
     `-- ${shop.name} (${shop.address}) [kakao_place_id: ${shop.kakaoPlaceId}]`,
-    `insert into public.places (id, kind, category, lat, lng, address, kakao_place_id, name, kakao_category, phone, created_by, created_at)`,
-    `values ('${placeId}', 'shop', 'bangeo', ${shop.lat}, ${shop.lng}, ${esc(shop.address)}, ${esc(shop.kakaoPlaceId)}, ${esc(shop.name)}, ${esc(shop.kakaoCategory)}, ${esc(shop.phone)}, '${userIds[0]}', now() - interval '${(idx % 7) + 1} days')`,
+    `insert into public.places (kind, category, lat, lng, address, kakao_place_id, name, kakao_category, phone, created_by, created_at)`,
+    `values ('shop', 'bangeo', ${shop.lat}, ${shop.lng}, ${esc(shop.address)}, ${esc(shop.kakaoPlaceId)}, ${esc(shop.name)}, ${esc(shop.kakaoCategory)}, ${esc(shop.phone)}, '${userIds[0]}', now() - interval '${(idx % 7) + 1} days')`,
     `on conflict (category, kakao_place_id) do update set lat = excluded.lat, lng = excluded.lng, address = excluded.address, name = excluded.name, kakao_category = excluded.kakao_category, phone = excluded.phone;`,
   );
 

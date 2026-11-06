@@ -38,5 +38,7 @@ export const toShop = (place: KakaoPlace, category: PlaceCategory): Shop => ({
   phone: place.phone || null,
   // 좋아요·태그는 우리 서비스에 쌓이는 값이라 카카오 검색 결과에는 없다
   likeCount: 0,
+  isLiked: false,
   tags: [],
+  savedPlaceId: null,
 });

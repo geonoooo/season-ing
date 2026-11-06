@@ -53,6 +53,7 @@
 | 언어 | TypeScript |
 | 스타일 | Tailwind CSS v4 (`@theme` 디자인 토큰) |
 | 지도 | 카카오 지도 JavaScript SDK ([react-kakao-maps-sdk](https://github.com/JaeSeoKim/react-kakao-maps-sdk)), 장소 검색(`services` 라이브러리) |
+| 저장소 | Supabase (Postgres, 익명 로그인). 로컬 개발은 Supabase CLI + Docker |
 | 패키지 매니저 | pnpm |
 
 ## 폴더 구조
@@ -70,21 +71,37 @@ src/
 ├── b_app/
 │   └── styles/           # 전역 스타일, 디자인 토큰
 ├── c_features/
-│   ├── place-browse/     # 지도·목록·상세 시트
+│   ├── place-browse/     # 지도·목록·상세 시트, 지역 검색, 좋아요·태그·노점 확인
 │   └── place-report/     # 제보 화면
 └── d_shared/
-    ├── place/            # 장소 타입, 음식 카테고리, 핀
+    ├── place/            # 장소 타입, 음식 카테고리, 핀, 가게 저장
     ├── geo/              # 좌표, 거리 계산, 현재 위치
-    ├── kakao-map/        # 카카오 SDK 로딩, 장소 검색
+    ├── kakao-map/        # 카카오 SDK 로딩, 장소 검색, 좌표 → 주소
+    ├── supabase/         # Supabase 클라이언트(익명 로그인), DB 타입
     ├── format/           # 숫자 표시
     └── ui/               # 공용 아이콘, 버튼
+
+supabase/
+├── config.toml           # 로컬 Supabase 설정 (익명 로그인 켜 둠)
+└── migrations/           # 테이블과 DB 함수
 ```
+
+기능 폴더의 `api/`는 Supabase DB 함수를 부르는 코드입니다. 여러 기능이 같이 쓰는 가게 저장(`saveShop`)만 `d_shared/place`에 있습니다.
 
 ## 동작 규칙
 
-- **장소 찾기**: 지도를 움직이면 화면에 보이는 영역 안에서 카카오 장소 검색을 다시 합니다. 붕어빵은 "붕어빵", 방어는 "방어"와 "대방어"로 검색하고, 같은 가게가 두 번 나오면 하나로 합칩니다.
+- **장소 찾기**: 지도를 움직이면 화면에 보이는 영역 안의 장소를 다시 찾습니다.
+  - 붕어빵: 사람들이 제보한 노점만 보여줍니다. 노점은 카카오맵에 거의 없어서 카카오 검색은 하지 않습니다.
+  - 방어: 제보하기 위의 "저장한 곳" 토글로 둘 중 하나만 보여줍니다. 끄면 카카오에서 "방어"·"대방어"로 검색한 가게 전체, 켜면 사람들이 저장한 가게만 나옵니다. 카카오 검색 결과 중 이미 저장된 가게는 저장된 좋아요·태그를 같이 보여줍니다.
+- **저장한 곳**: 방어 가게는 누군가 제보하거나 좋아요·태그를 다는 순간 저장한 곳이 됩니다. 지도에서 좋아요가 있는 곳은 핀에 숫자를 붙입니다.
+- **지역 검색**: 맨 위 검색창에 지역이나 역 이름을 넣으면 카카오 장소 검색 첫 결과로 지도를 옮기고, 그 영역의 장소를 다시 찾습니다.
+- **사용자와 제한**: 둘러보기는 로그인 없이 됩니다. 처음 제보·좋아요·태그·노점 확인을 할 때 Supabase 익명 로그인으로 기기마다 사용자가 하나 생깁니다. 둘러보기만 하는 사람까지 가입시키면 Supabase의 IP당 익명 가입 제한(시간당 30번)에 걸리기 때문입니다. 브라우저 데이터를 지우면 새 사용자가 됩니다.
+  - 좋아요와 태그는 장소마다 사람당 하나입니다. 한 번 더 누르면 취소됩니다.
+  - "아직 있어요 / 없어졌어요"는 노점마다 사람당 하루 한 번만 셉니다. 같은 날 다시 누르면 마지막 답으로 바뀝니다.
+  - 노점 제보는 기기당 하루 3번까지입니다(한국 날짜 기준).
+  - 이 규칙은 DB 함수가 지킵니다. 테이블은 브라우저에서 직접 읽거나 쓸 수 없습니다.
 - **정렬**: 붕어빵은 가격순(개당 가격 기준)·좋아요순, 방어는 좋아요순·거리순입니다.
-- **노점이 아직 있는지**: 노점은 사라지기도 해서 마지막으로 확인된 날짜를 봅니다. 날짜는 한국 시간 기준으로 셉니다.
+- **노점이 아직 있는지**: 노점은 사라지기도 해서 마지막으로 확인된 날짜를 봅니다. 마지막 확인은 제보한 때나 마지막 "아직 있어요" 중 늦은 쪽이고, "없어졌어요"는 마지막 확인 뒤에 들어온 것만 셉니다. 날짜는 한국 시간 기준으로 셉니다.
   - 7일 안에 확인됨: 그대로 보여줍니다.
   - 7일 넘음: 핀을 흐리게 보여줍니다.
   - 30일 넘음, 또는 "없어졌어요" 제보 3건 이상: 지도와 목록에서 숨깁니다.
@@ -100,12 +117,14 @@ src/
 - 지도 영역 검색 결과를 핀과 목록으로 표시, 정렬
 - 가게 상세 시트: 카카오맵 장소 페이지 열기, 전화 걸기
 - 제보 화면: 지도로 위치 고르기, 가격·요일 입력, 방어 가게 검색
+- Supabase에 저장: 노점 제보, 방어 가게 등록, 좋아요, 태그 달기·누르기, "아직 있어요 / 없어졌어요"
+- 기기당 하루 3번 노점 제보 제한
+- 지역 검색
 
 **아직 안 된 것**
 
-- 저장소(백엔드)가 없습니다. 그래서 제보하기, 좋아요, 태그 추가, "아직 있어요 / 없어졌어요" 버튼은 화면만 있고 누르면 아무 일도 일어나지 않습니다.
-- 노점 데이터는 제보가 저장되어야 생깁니다. 지금 지도에 뜨는 건 카카오 장소 검색으로 찾은 가게뿐입니다.
-- "기기당 하루 3번까지 제보" 제한은 안내 문구만 있습니다.
+- 클라우드 Supabase 프로젝트가 없습니다. 지금은 로컬 Supabase(Docker)에서만 저장됩니다. 배포 환경에 Supabase 키가 없으면 목록에 "가게 정보를 불러오지 못했어요"가 나옵니다. [클라우드 Supabase 연결](#클라우드-supabase-연결)을 보세요.
+- 방어 제보 화면의 "검색에 안 나오면 지도에서 직접 찍기" 버튼은 누르면 아무 일도 일어나지 않습니다.
 - 테스트가 아직 없습니다.
 
 ## 시작하기
@@ -115,20 +134,32 @@ src/
 1. [Kakao Developers](https://developers.kakao.com/)에서 앱을 만들고 **JavaScript 키**를 복사합니다.
 2. 앱 설정에서 JavaScript SDK를 쓸 도메인으로 `http://localhost:3000`을 등록합니다. 등록하지 않으면 지도가 뜨지 않습니다.
 
-### 2. 환경 변수
+### 2. 로컬 Supabase 띄우기
+
+Docker Desktop을 켠 다음 실행합니다.
+
+```bash
+pnpm install
+pnpm supabase start
+```
+
+처음에는 이미지를 내려받느라 몇 분 걸립니다. 이때 `supabase/migrations/`의 테이블과 DB 함수가 적용됩니다. 끝나면 출력에 Project URL과 Publishable key가 나옵니다. 나중에 다시 보려면 `pnpm supabase status`를 실행합니다.
+
+### 3. 환경 변수
 
 프로젝트 루트에 `.env.local`을 만듭니다.
 
 ```bash
 NEXT_PUBLIC_KAKAO_MAP_KEY=발급받은_JavaScript_키
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=supabase_start_출력의_Publishable_key
 ```
 
-키가 없으면 지도 자리에 "카카오 지도 키(NEXT_PUBLIC_KAKAO_MAP_KEY)가 설정되지 않았어요"가 나옵니다.
+카카오 키가 없으면 지도 자리에 "카카오 지도 키(NEXT_PUBLIC_KAKAO_MAP_KEY)가 설정되지 않았어요"가 나옵니다. Supabase 키가 없으면 목록에 "가게 정보를 불러오지 못했어요"가 나옵니다.
 
-### 3. 실행
+### 4. 실행
 
 ```bash
-pnpm install
 pnpm dev
 ```
 
@@ -140,6 +171,22 @@ pnpm dev
 | `pnpm build` | 프로덕션 빌드 |
 | `pnpm start` | 빌드 결과 실행 |
 | `pnpm lint` | ESLint |
+| `pnpm supabase start` / `pnpm supabase stop` | 로컬 Supabase 켜기 / 끄기 |
+| `pnpm supabase db reset` | 로컬 DB를 비우고 마이그레이션을 다시 적용 |
+| `pnpm supabase gen types typescript > src/d_shared/supabase/database.types.ts` | 스키마를 바꾼 뒤 DB 타입 다시 만들기 |
+
+### 클라우드 Supabase 연결
+
+배포하려면 클라우드 Supabase 프로젝트가 필요합니다.
+
+1. [supabase.com](https://supabase.com)에서 프로젝트를 만들고, Authentication → Sign In / Providers에서 **Anonymous sign-ins**를 켭니다.
+2. 마이그레이션을 올립니다.
+   ```bash
+   pnpm supabase login
+   pnpm supabase link --project-ref <프로젝트_ref>
+   pnpm supabase db push
+   ```
+3. Vercel 프로젝트 환경 변수에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`를 넣습니다. 값은 Supabase 대시보드의 Project Settings → API Keys에 있습니다.
 
 ## 새 제철 음식 추가하기
 
@@ -149,6 +196,7 @@ pnpm dev
 2. [`src/b_app/styles/globals.css`](src/b_app/styles/globals.css): 음식 색 토큰 `--color-<음식>` 추가
 3. [`src/d_shared/place/place-category.ts`](src/d_shared/place/place-category.ts): 이름, 색 클래스, 탭 순서(`PLACE_CATEGORY_ORDER`)
 4. [`src/d_shared/place/place-pin.tsx`](src/d_shared/place/place-pin.tsx): 핀 아이콘
-5. [`src/c_features/place-browse/model/kakao-shop-search.ts`](src/c_features/place-browse/model/kakao-shop-search.ts): 카카오 검색 키워드
+5. [`src/c_features/place-browse/model/kakao-shop-search.ts`](src/c_features/place-browse/model/kakao-shop-search.ts): 카카오 검색 키워드. 노점형처럼 제보만 보여줄 음식은 빈 배열로 둡니다.
 6. [`src/c_features/place-browse/model/list-places.ts`](src/c_features/place-browse/model/list-places.ts): 정렬 옵션
 7. `src/app/report/<음식>/page.tsx`: 제보 화면. 노점형은 `StallReportForm`, 가게형은 `ShopReportForm`을 씁니다.
+8. `supabase/migrations/`에 새 마이그레이션을 추가합니다(`pnpm supabase migration new <이름>`). `alter type public.place_category add value '<음식>';`을 넣고, 노점형이면 `places` 테이블의 노점 체크 제약(`category = 'bungeoppang'`)도 바꿉니다. 그다음 DB 타입을 다시 만듭니다.

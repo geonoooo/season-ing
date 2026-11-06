@@ -6,6 +6,9 @@ interface PlaceDetailHeaderProps {
   title: string;
   subtitle: string | null;
   likeCount: number;
+  isLiked: boolean;
+  isSaving: boolean;
+  onToggleLike: () => void;
   onClose: () => void;
 }
 
@@ -15,6 +18,9 @@ export const PlaceDetailHeader = ({
   title,
   subtitle,
   likeCount,
+  isLiked,
+  isSaving,
+  onToggleLike,
   onClose,
 }: PlaceDetailHeaderProps) => (
   <>
@@ -36,11 +42,15 @@ export const PlaceDetailHeader = ({
       </div>
       <button
         type="button"
-        aria-pressed={false}
+        aria-pressed={isLiked}
         aria-label={`좋아요 ${likeCount}`}
-        className="flex h-touch shrink-0 items-center gap-1.5 rounded-full border border-line px-3.5 text-body font-semibold text-ink"
+        disabled={isSaving}
+        onClick={onToggleLike}
+        className={`flex h-touch shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-body font-semibold text-ink ${
+          isLiked ? "border-ink" : "border-line"
+        }`}
       >
-        <HeartIcon />
+        <HeartIcon isFilled={isLiked} />
         {likeCount}
       </button>
     </div>

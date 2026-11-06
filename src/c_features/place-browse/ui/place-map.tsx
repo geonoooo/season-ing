@@ -66,13 +66,21 @@ export const PlaceMap = ({
                 type="button"
                 aria-label={placeTitle(place)}
                 onClick={() => onSelectPlace(place.id)}
-                className="block"
+                className="relative block"
               >
                 <PlacePin
                   category={place.category}
                   isSelected={isSelected}
                   isFaded={classifyFreshness(place, now) === "stale"}
                 />
+                {place.likeCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-2.5 -top-1 rounded-full bg-white px-1.5 text-caption font-bold text-ink shadow-overlay"
+                  >
+                    ♥{place.likeCount}
+                  </span>
+                )}
               </button>
             </CustomOverlayMap>
           );

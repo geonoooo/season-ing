@@ -8,6 +8,7 @@ import { PlaceListItem } from "./place-list-item";
 interface PlaceListSheetProps {
   category: PlaceCategory;
   places: Place[];
+  isSavedOnly: boolean;
   sortKey: SortKey;
   myPosition: Coordinates | null;
   now: Date;
@@ -19,6 +20,7 @@ interface PlaceListSheetProps {
 export const PlaceListSheet = ({
   category,
   places,
+  isSavedOnly,
   sortKey,
   myPosition,
   now,
@@ -34,7 +36,7 @@ export const PlaceListSheet = ({
       header={
         <div className="flex items-center justify-between py-1 pl-5 pr-3">
           <h2 className="text-title font-bold">
-            {label} {places.length}곳
+            {isSavedOnly ? `저장한 ${label}` : label} {places.length}곳
           </h2>
           <div className="flex gap-0.5">
             {SORT_OPTIONS[category].map((option) => {

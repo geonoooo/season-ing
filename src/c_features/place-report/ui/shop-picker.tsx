@@ -1,9 +1,10 @@
 import { useState } from "react";
 
 import { distanceInMeters, formatDistance, useCurrentPosition } from "@/d_shared/geo";
-import { PLACE_CATEGORIES, type PlaceCategory } from "@/d_shared/place";
+import { PLACE_CATEGORIES, saveShop, type PlaceCategory } from "@/d_shared/place";
 import { SearchIcon } from "@/d_shared/ui";
 
+import { useReportSubmit } from "../model/use-report-submit";
 import { describeSearch, useShopSearch } from "../model/use-shop-search";
 
 interface ShopPickerProps {
@@ -16,6 +17,8 @@ export const ShopPicker = ({ category }: ShopPickerProps) => {
   const { position } = useCurrentPosition();
   const { candidates, status, search } = useShopSearch(category);
   const searchMessage = describeSearch(status, candidates.length);
+  const { isSubmitting, errorMessage, submit } = useReportSubmit(category);
+  const selectedShop = candidates.find((candidate) => candidate.kakaoPlaceId === selectedPlaceId);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -82,9 +85,15 @@ export const ShopPicker = ({ category }: ShopPickerProps) => {
         <button type="button" className="mb-2 h-touch w-full text-label font-semibold text-ink underline">
           검색에 안 나오면 지도에서 직접 찍기
         </button>
+        {errorMessage && (
+          <p role="alert" className="mb-2 text-center text-caption font-semibold text-ink">
+            {errorMessage}
+          </p>
+        )}
         <button
           type="button"
-          disabled={!selectedPlaceId}
+          disabled={!selectedShop || isSubmitting}
+          onClick={() => selectedShop && submit(() => saveShop(selectedShop))}
           className={`h-13 w-full rounded-control text-control font-bold text-white disabled:opacity-40 ${PLACE_CATEGORIES[category].solidClassName}`}
         >
           등록하기

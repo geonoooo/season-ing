@@ -123,7 +123,6 @@ supabase/
 
 **아직 안 된 것**
 
-- 클라우드 Supabase 프로젝트가 없습니다. 지금은 로컬 Supabase(Docker)에서만 저장됩니다. 배포 환경에 Supabase 키가 없으면 목록에 "가게 정보를 불러오지 못했어요"가 나옵니다. [클라우드 Supabase 연결](#클라우드-supabase-연결)을 보세요.
 - 방어 제보 화면의 "검색에 안 나오면 지도에서 직접 찍기" 버튼은 누르면 아무 일도 일어나지 않습니다.
 - 테스트가 아직 없습니다.
 
@@ -175,18 +174,15 @@ pnpm dev
 | `pnpm supabase db reset` | 로컬 DB를 비우고 마이그레이션을 다시 적용 |
 | `pnpm supabase gen types typescript > src/d_shared/supabase/database.types.ts` | 스키마를 바꾼 뒤 DB 타입 다시 만들기 |
 
-### 클라우드 Supabase 연결
+### 배포 환경의 Supabase
 
-배포하려면 클라우드 Supabase 프로젝트가 필요합니다.
+배포 환경은 Vercel Marketplace로 설치한 Supabase(`season-ing`, 무료 플랜, 서울 리전)를 씁니다. Vercel 프로젝트에 연결되어 있어서 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`가 Production·Preview·Development 환경 변수에 자동으로 들어갑니다. Supabase 대시보드는 Vercel의 Integrations → Supabase → Open in Supabase로 엽니다.
 
-1. [supabase.com](https://supabase.com)에서 프로젝트를 만들고, Authentication → Sign In / Providers에서 **Anonymous sign-ins**를 켭니다.
-2. 마이그레이션을 올립니다.
-   ```bash
-   pnpm supabase login
-   pnpm supabase link --project-ref <프로젝트_ref>
-   pnpm supabase db push
-   ```
-3. Vercel 프로젝트 환경 변수에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`를 넣습니다. 값은 Supabase 대시보드의 Project Settings → API Keys에 있습니다.
+- **Anonymous sign-ins**: Supabase 대시보드 Authentication → Sign In / Providers에서 켜 두었습니다. 끄면 둘러보기는 되지만 제보·좋아요·태그가 실패합니다.
+- **마이그레이션 올리기**: `supabase/migrations/`에 새 파일을 추가했으면 프로젝트 폴더의 터미널에서 실행합니다. 확인을 물으면 `y`를 입력합니다.
+  ```bash
+  vercel env run -e production -- sh -c 'pnpm supabase db push --db-url "$POSTGRES_URL_NON_POOLING"'
+  ```
 
 ## 새 제철 음식 추가하기
 

@@ -2,6 +2,7 @@ import { distanceInMeters, formatDistance, type Coordinates } from "@/d_shared/g
 import { PLACE_CATEGORIES, type Shop } from "@/d_shared/place";
 
 import { kakaoPlaceUrl } from "../model/kakao-map-link";
+import type { PlaceActions } from "../model/use-place-actions";
 import { BottomSheet } from "./bottom-sheet";
 import { PlaceDetailHeader } from "./place-detail-header";
 import { TagList } from "./tag-list";
@@ -9,10 +10,11 @@ import { TagList } from "./tag-list";
 interface ShopDetailSheetProps {
   shop: Shop;
   myPosition: Coordinates | null;
+  actions: PlaceActions;
   onClose: () => void;
 }
 
-export const ShopDetailSheet = ({ shop, myPosition, onClose }: ShopDetailSheetProps) => {
+export const ShopDetailSheet = ({ shop, myPosition, actions, onClose }: ShopDetailSheetProps) => {
   const { label, textClassName, solidClassName } = PLACE_CATEGORIES[shop.category];
   const distance = myPosition
     ? formatDistance(distanceInMeters(myPosition, shop.position))
@@ -26,9 +28,17 @@ export const ShopDetailSheet = ({ shop, myPosition, onClose }: ShopDetailSheetPr
         title={shop.name}
         subtitle={[shop.address, distance && `내 위치에서 ${distance}`].filter(Boolean).join(" · ")}
         likeCount={shop.likeCount}
+        isLiked={shop.isLiked}
+        isSaving={actions.isSaving}
+        onToggleLike={() => actions.toggleLike(shop)}
         onClose={onClose}
       />
-      <TagList tags={shop.tags} />
+      <TagList
+        tags={shop.tags}
+        isSaving={actions.isSaving}
+        onToggleTag={(tag) => actions.toggleTag(shop, tag)}
+        onAddTag={(label) => actions.addTag(shop, label)}
+      />
       <div className="mt-6 flex gap-2">
         <a
           href={kakaoPlaceUrl(shop.kakaoPlaceId)}

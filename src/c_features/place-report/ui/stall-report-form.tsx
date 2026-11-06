@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 
+import type { Coordinates } from "@/d_shared/geo";
+import { addressAt } from "@/d_shared/kakao-map";
 import { PLACE_CATEGORIES, toggleWeekday, type StallCategory, type Weekday } from "@/d_shared/place";
 
+import { reportStall } from "../api/place-report.api";
 import { digitsOnly, formatDigits } from "../model/number-input";
+import { useReportSubmit } from "../model/use-report-submit";
 import { PositionPicker } from "./position-picker";
 import { ReportHeader } from "./report-header";
 import { WeekdayToggles } from "./weekday-toggles";
@@ -21,12 +25,31 @@ export const StallReportForm = ({ category }: StallReportFormProps) => {
   const [bundleCount, setBundleCount] = useState("");
   const [bundlePrice, setBundlePrice] = useState("");
   const [openDays, setOpenDays] = useState<Weekday[]>([]);
+  const [pinPosition, setPinPosition] = useState<Coordinates | null>(null);
+  const { isSubmitting, errorMessage, submit } = useReportSubmit(category);
+  const bundle = { count: Number(bundleCount), price: Number(bundlePrice) };
+  const canSubmit = pinPosition !== null && bundle.count > 0 && bundle.price > 0 && !isSubmitting;
 
   return (
     <div className="flex h-full flex-col bg-white">
       <ReportHeader title={`${label} 제보`} closeHref={`/?category=${category}`} />
-      <form className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <PositionPicker category={category} />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!pinPosition) return;
+          submit(async () =>
+            reportStall({
+              category,
+              position: pinPosition,
+              address: await addressAt(pinPosition),
+              bundle,
+              openDays,
+            }),
+          );
+        }}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+      >
+        <PositionPicker category={category} onPositionChange={setPinPosition} />
         <p className="px-4 pt-2.5 text-caption text-muted">지도를 움직여 핀을 노점 자리에 맞춰주세요</p>
         <div className="flex flex-col gap-6 px-4 pt-5">
           <fieldset>
@@ -68,10 +91,17 @@ export const StallReportForm = ({ category }: StallReportFormProps) => {
           </fieldset>
         </div>
         <div className="mt-auto px-4 pb-4 pt-6">
-          <p className="mb-2 text-center text-caption text-muted">기기당 하루 3번까지 제보할 수 있어요</p>
+          {errorMessage ? (
+            <p role="alert" className="mb-2 text-center text-caption font-semibold text-ink">
+              {errorMessage}
+            </p>
+          ) : (
+            <p className="mb-2 text-center text-caption text-muted">기기당 하루 3번까지 제보할 수 있어요</p>
+          )}
           <button
-            type="button"
-            className={`h-13 w-full rounded-control text-control font-bold text-white ${solidClassName}`}
+            type="submit"
+            disabled={!canSubmit}
+            className={`h-13 w-full rounded-control text-control font-bold text-white disabled:opacity-40 ${solidClassName}`}
           >
             제보하기
           </button>

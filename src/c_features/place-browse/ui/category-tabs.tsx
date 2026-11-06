@@ -9,7 +9,7 @@ interface CategoryTabsProps {
 export const CategoryTabs = ({ current }: CategoryTabsProps) => (
   <nav
     aria-label="카테고리"
-    className="absolute inset-x-4 top-4 flex gap-1 rounded-control bg-white p-1 shadow-overlay"
+    className="flex gap-1 rounded-control bg-white p-1 shadow-overlay"
   >
     {PLACE_CATEGORY_ORDER.map((category) => {
       const isCurrent = category === current;

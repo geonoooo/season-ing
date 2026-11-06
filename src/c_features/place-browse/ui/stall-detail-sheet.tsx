@@ -5,6 +5,7 @@ import { formatBundlePrice } from "../model/bundle-price";
 import { formatDaysAgo } from "../model/freshness";
 import { kakaoDirectionsUrl } from "../model/kakao-map-link";
 import { placeTitle } from "../model/place-title";
+import type { PlaceActions } from "../model/use-place-actions";
 import { BottomSheet } from "./bottom-sheet";
 import { PlaceDetailHeader } from "./place-detail-header";
 import { TagList } from "./tag-list";
@@ -13,10 +14,17 @@ interface StallDetailSheetProps {
   stall: Stall;
   myPosition: Coordinates | null;
   now: Date;
+  actions: PlaceActions;
   onClose: () => void;
 }
 
-export const StallDetailSheet = ({ stall, myPosition, now, onClose }: StallDetailSheetProps) => {
+export const StallDetailSheet = ({
+  stall,
+  myPosition,
+  now,
+  actions,
+  onClose,
+}: StallDetailSheetProps) => {
   const { label, textClassName, solidClassName } = PLACE_CATEGORIES[stall.category];
   const title = placeTitle(stall);
   const distance = myPosition
@@ -31,6 +39,9 @@ export const StallDetailSheet = ({ stall, myPosition, now, onClose }: StallDetai
         title={title}
         subtitle={distance}
         likeCount={stall.likeCount}
+        isLiked={stall.isLiked}
+        isSaving={actions.isSaving}
+        onToggleLike={() => actions.toggleLike(stall)}
         onClose={onClose}
       />
       <p className="mt-5 text-price font-extrabold tracking-tight">
@@ -64,17 +75,26 @@ export const StallDetailSheet = ({ stall, myPosition, now, onClose }: StallDetai
           </dd>
         </div>
       </dl>
-      <TagList tags={stall.tags} />
+      <TagList
+        tags={stall.tags}
+        isSaving={actions.isSaving}
+        onToggleTag={(tag) => actions.toggleTag(stall, tag)}
+        onAddTag={(label) => actions.addTag(stall, label)}
+      />
       <p className="mt-6 text-body font-bold">아직 이 자리에 있나요?</p>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
+          disabled={actions.isSaving}
+          onClick={() => actions.checkStall(stall, true)}
           className={`h-13 flex-1 rounded-control text-control font-bold text-white ${solidClassName}`}
         >
           아직 있어요
         </button>
         <button
           type="button"
+          disabled={actions.isSaving}
+          onClick={() => actions.checkStall(stall, false)}
           className="h-13 flex-1 rounded-control border border-line bg-white text-control font-semibold text-ink"
         >
           없어졌어요

@@ -30,11 +30,10 @@ const signInAnonymously = async (): Promise<SupabaseClient<Database>> => {
 };
 
 // 둘러보는 사람까지 익명 가입시키면 IP당 익명 가입 제한(시간당 30번)에 걸리므로 쓰기 직전에만 로그인한다.
-// 요청 여러 개가 한꺼번에 와도 익명 사용자가 하나만 생기게 로그인을 한 번만 한다
+// 동시에 들어온 요청끼리만 로그인을 나눠 쓰고, 끝나면 비워서 다음 쓰기 때 세션이 아직 있는지 다시 확인한다
 export const signedInSupabase = (): Promise<SupabaseClient<Database>> => {
-  signingIn ??= signInAnonymously().catch((error: unknown) => {
+  signingIn ??= signInAnonymously().finally(() => {
     signingIn = null;
-    throw error;
   });
   return signingIn;
 };

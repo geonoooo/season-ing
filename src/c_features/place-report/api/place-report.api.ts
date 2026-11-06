@@ -24,6 +24,12 @@ export const reportStall = async ({ category, position, address, bundle, openDay
   if (error) throw error;
 };
 
-// report_stall DB 함수가 하루 3번을 넘기면 이 메시지로 예외를 던진다
-export const isDailyReportLimitError = (error: unknown): boolean =>
-  error instanceof Object && "message" in error && error.message === "daily_report_limit";
+export type DailyLimitCode = "daily_report_limit" | "daily_save_limit";
+
+const DAILY_LIMIT_CODES: readonly DailyLimitCode[] = ["daily_report_limit", "daily_save_limit"];
+
+// report_stall·save_shop DB 함수가 하루 제한을 넘기면 이 메시지로 예외를 던진다
+export const dailyLimitCodeOf = (error: unknown): DailyLimitCode | null => {
+  const message = error instanceof Object && "message" in error ? error.message : null;
+  return DAILY_LIMIT_CODES.find((code) => code === message) ?? null;
+};

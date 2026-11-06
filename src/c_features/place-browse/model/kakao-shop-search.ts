@@ -12,13 +12,25 @@ export const uniqueShops = (shops: readonly Shop[]): Shop[] => [
   ...new Map(shops.map((shop) => [shop.kakaoPlaceId, shop])).values(),
 ];
 
-// 카카오 결과 중 이미 저장된 가게는 같은 가게라서 저장된 쪽(좋아요·태그 포함)으로 바꿔 보여준다
+// DB의 가게 이름·주소·위치는 브라우저가 보낸 값이라 믿지 않고, 카카오 값 위에 좋아요·태그만 얹는다
 export const overlaySavedShops = (
   kakaoShops: readonly Shop[],
   savedPlaces: readonly Place[],
-): Place[] => {
-  const savedById = new Map(savedPlaces.map((place) => [place.id, place]));
-  return kakaoShops.map((shop) => savedById.get(shop.id) ?? shop);
+): Shop[] => {
+  const savedShopsById = new Map(
+    savedPlaces.flatMap((place) => (place.kind === "shop" ? [[place.id, place] as const] : [])),
+  );
+  return kakaoShops.map((shop) => {
+    const savedShop = savedShopsById.get(shop.id);
+    if (!savedShop) return shop;
+    return {
+      ...shop,
+      likeCount: savedShop.likeCount,
+      isLiked: savedShop.isLiked,
+      tags: savedShop.tags,
+      savedPlaceId: savedShop.savedPlaceId,
+    };
+  });
 };
 
 export const hasSavedOnlyToggle = (category: PlaceCategory): boolean =>

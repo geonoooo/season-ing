@@ -96,10 +96,12 @@ supabase/
 - **저장한 곳**: 방어 가게는 누군가 제보하거나 좋아요·태그를 다는 순간 저장한 곳이 됩니다. 지도에서 좋아요가 있는 곳은 핀에 숫자를 붙입니다.
 - **지역 검색**: 맨 위 검색창에 지역이나 역 이름을 넣으면 카카오 장소 검색 첫 결과로 지도를 옮기고, 그 영역의 장소를 다시 찾습니다.
 - **사용자와 제한**: 둘러보기는 로그인 없이 됩니다. 처음 제보·좋아요·태그·노점 확인을 할 때 Supabase 익명 로그인으로 기기마다 사용자가 하나 생깁니다. 둘러보기만 하는 사람까지 가입시키면 Supabase의 IP당 익명 가입 제한(시간당 30번)에 걸리기 때문입니다. 브라우저 데이터를 지우면 새 사용자가 됩니다.
-  - 좋아요와 태그는 장소마다 사람당 하나입니다. 한 번 더 누르면 취소됩니다.
+  - 좋아요와 태그는 장소마다 사람당 하나입니다. 한 번 더 누르면 취소됩니다. 한 사람이 장소 하나에 달 수 있는 태그는 5개까지입니다.
   - "아직 있어요 / 없어졌어요"는 노점마다 사람당 하루 한 번만 셉니다. 같은 날 다시 누르면 마지막 답으로 바뀝니다.
-  - 노점 제보는 기기당 하루 3번까지입니다(한국 날짜 기준).
-  - 이 규칙은 DB 함수가 지킵니다. 테이블은 브라우저에서 직접 읽거나 쓸 수 없습니다.
+  - 노점 제보는 기기당 하루 3번, 새 가게 저장은 기기당 하루 30곳까지입니다(한국 날짜 기준). 이미 저장된 가게에 좋아요·태그를 다는 건 세지 않습니다.
+  - 좌표는 한국 안(위도 33~39, 경도 124~132)만 받고, 주소·가게 이름·전화번호 길이와 붕어빵 개수(100개)·가격(10만 원)에 상한이 있습니다.
+  - 이 규칙은 DB 함수와 테이블 제약이 지킵니다. 테이블은 브라우저에서 직접 읽거나 쓸 수 없습니다.
+  - DB의 가게 이름·주소·위치는 브라우저가 보낸 값이라, "방어 전체"에서는 카카오 검색 결과의 값을 보여주고 DB에서는 좋아요·태그만 가져옵니다.
 - **정렬**: 붕어빵은 가격순(개당 가격 기준)·좋아요순, 방어는 좋아요순·거리순입니다.
 - **노점이 아직 있는지**: 노점은 사라지기도 해서 마지막으로 확인된 날짜를 봅니다. 마지막 확인은 제보한 때나 마지막 "아직 있어요" 중 늦은 쪽이고, "없어졌어요"는 마지막 확인 뒤에 들어온 것만 셉니다. 날짜는 한국 시간 기준으로 셉니다.
   - 7일 안에 확인됨: 그대로 보여줍니다.
@@ -123,7 +125,6 @@ supabase/
 
 **아직 안 된 것**
 
-- 클라우드 Supabase 프로젝트가 없습니다. 지금은 로컬 Supabase(Docker)에서만 저장됩니다. 배포 환경에 Supabase 키가 없으면 목록에 "가게 정보를 불러오지 못했어요"가 나옵니다. [클라우드 Supabase 연결](#클라우드-supabase-연결)을 보세요.
 - 방어 제보 화면의 "검색에 안 나오면 지도에서 직접 찍기" 버튼은 누르면 아무 일도 일어나지 않습니다.
 - 테스트가 아직 없습니다.
 
@@ -175,18 +176,15 @@ pnpm dev
 | `pnpm supabase db reset` | 로컬 DB를 비우고 마이그레이션을 다시 적용 |
 | `pnpm supabase gen types typescript > src/d_shared/supabase/database.types.ts` | 스키마를 바꾼 뒤 DB 타입 다시 만들기 |
 
-### 클라우드 Supabase 연결
+### 배포 환경의 Supabase
 
-배포하려면 클라우드 Supabase 프로젝트가 필요합니다.
+배포 환경은 Vercel Marketplace로 설치한 Supabase(`season-ing`, 무료 플랜, 서울 리전)를 씁니다. Vercel 프로젝트에 연결되어 있어서 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`가 Production·Preview·Development 환경 변수에 자동으로 들어갑니다. Supabase 대시보드는 Vercel의 Integrations → Supabase → Open in Supabase로 엽니다.
 
-1. [supabase.com](https://supabase.com)에서 프로젝트를 만들고, Authentication → Sign In / Providers에서 **Anonymous sign-ins**를 켭니다.
-2. 마이그레이션을 올립니다.
-   ```bash
-   pnpm supabase login
-   pnpm supabase link --project-ref <프로젝트_ref>
-   pnpm supabase db push
-   ```
-3. Vercel 프로젝트 환경 변수에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`를 넣습니다. 값은 Supabase 대시보드의 Project Settings → API Keys에 있습니다.
+- **Anonymous sign-ins**: Supabase 대시보드 Authentication → Sign In / Providers에서 켜 두었습니다. 끄면 둘러보기는 되지만 제보·좋아요·태그가 실패합니다.
+- **마이그레이션 올리기**: `supabase/migrations/`에 새 파일을 추가했으면 프로젝트 폴더의 터미널에서 실행합니다. 확인을 물으면 `y`를 입력합니다.
+  ```bash
+  vercel env run -e production -- sh -c 'pnpm supabase db push --db-url "$POSTGRES_URL_NON_POOLING"'
+  ```
 
 ## 새 제철 음식 추가하기
 

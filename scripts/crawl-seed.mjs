@@ -371,6 +371,107 @@ const STALL_TARGETS = [
     tags: ["팥 · 슈크림", "겉바속촉", "계좌이체 가능"],
     likes: 18,
   },
+  // 가락시장 / 문정 / 법조단지 / 장지 / 경찰병원 / 석촌 / 방이 / 개롱 / 잠실새내 (송파권 집중 보강)
+  {
+    query: "송파구 송파대로 260",
+    offsetLat: 0,
+    offsetLng: 0,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["가락시장역 8출", "팥이 꽉 찼어요", "슈크림 맛집", "일찍 마감해요"],
+    likes: 27,
+  },
+  {
+    query: "송파구 송파대로28길 5",
+    offsetLat: 0,
+    offsetLng: 0,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["가락시장역 3출", "가락먹자골목", "팥 · 슈크림", "현금 · 이체"],
+    likes: 19,
+  },
+  {
+    query: "송파구 중대로 135",
+    offsetLat: 0,
+    offsetLng: 0,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri"],
+    tags: ["경찰병원역 앞", "팥 · 슈크림", "겉바속촉", "계좌이체 가능"],
+    likes: 16,
+  },
+  {
+    query: "송파구 법원로 128",
+    offsetLat: 0,
+    offsetLng: 0,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri"],
+    tags: ["문정역 3출 앞", "문정법조단지", "팥 · 슈크림", "계좌이체 가능"],
+    likes: 31,
+  },
+  {
+    query: "문정역 1번출구",
+    offsetLat: 0.0001,
+    offsetLng: 0.00015,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["문정로데오", "슈크림 듬뿍", "현금 · 이체"],
+    likes: 22,
+  },
+  {
+    query: "송파구 법원로 114",
+    offsetLat: 0.0001,
+    offsetLng: -0.0001,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri"],
+    tags: ["엠스테이트 앞", "팥 · 슈크림", "퇴근길 성지", "계좌이체 가능"],
+    likes: 25,
+  },
+  {
+    query: "장지역 4번출구",
+    offsetLat: -0.00015,
+    offsetLng: 0.0001,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+    tags: ["가든파이브 앞", "팥 · 슈크림", "계좌이체 가능"],
+    likes: 20,
+  },
+  {
+    query: "석촌역 2번출구",
+    offsetLat: 0.0001,
+    offsetLng: 0.0001,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["겉바속촉", "팥 · 슈크림", "줄 서서 먹어요"],
+    likes: 24,
+  },
+  {
+    query: "방이역 4번출구",
+    offsetLat: 0.0001,
+    offsetLng: -0.0001,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["팥 듬뿍", "슈크림 있어요", "계좌이체 가능"],
+    likes: 15,
+  },
+  {
+    query: "개롱역 3번출구",
+    offsetLat: -0.0001,
+    offsetLng: 0.0001,
+    bundleCount: 3,
+    bundlePrice: 2000,
+    openDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+    tags: ["동네 붕세권", "팥 · 슈크림", "현금 · 이체"],
+    likes: 17,
+  },
 ];
 
 // 2. 서울 전역 대표 대방어 맛집 목록
@@ -485,12 +586,39 @@ const SHOP_TARGETS = [
     tags: ["두툼한 대방어", "분위기 좋아요", "신선해요"],
     likes: 19,
   },
+  // 가락시장(가락몰) & 문정동 대방어 성지
+  {
+    query: "가락시장 온달수산",
+    tags: ["가락몰 1티어", "돼지방어 성지", "특수부위 푸짐", "두툼하게 썰어줌"],
+    likes: 56,
+  },
+  {
+    query: "가락시장 놀부수산",
+    tags: ["특대방어 맛집", "양 푸짐해요", "초장집 연계"],
+    likes: 48,
+  },
+  {
+    query: "가락시장 이순신수산",
+    tags: ["신선도 최고", "부위별 대방어", "포장 깔끔해요"],
+    likes: 43,
+  },
+  {
+    query: "가락시장 강경수산",
+    tags: ["기름진 뱃살", "가성비 모둠", "친절해요"],
+    likes: 37,
+  },
+  {
+    query: "문정동 방어",
+    tags: ["문정법조단지", "숙성 대방어", "회식 추천"],
+    likes: 29,
+  },
 ];
 
 const AREA_RECTS = [
   "126.960,37.555,127.000,37.580", // 시청/광화문/종각/을지로/명동
   "126.910,37.545,126.935,37.568", // 홍대/연남/합정
   "127.020,37.495,127.040,37.512", // 강남/신논현/역삼
+  "127.105,37.475,127.140,37.505", // 가락시장/문정/경찰병원/장지
 ];
 
 console.log("1. 붕어빵 노점 좌표 및 도로명 주소 수집 중...");
@@ -673,9 +801,17 @@ shops.forEach((shop, idx) => {
 
 sqlLines.push("commit;", "");
 
+const seedSql = sqlLines.join("\n");
 const seedSqlPath = path.join(rootDir, "supabase", "seed.sql");
-fs.writeFileSync(seedSqlPath, sqlLines.join("\n"), "utf8");
+const migrationSqlPath = path.join(
+  rootDir,
+  "supabase",
+  "migrations",
+  "20261106020000_seed_places.sql",
+);
+fs.writeFileSync(seedSqlPath, seedSql, "utf8");
+fs.writeFileSync(migrationSqlPath, seedSql, "utf8");
 console.log(
-  `완료: 붕어빵 노점 ${stalls.length}곳, 방어 맛집 ${shops.length}곳 -> ${seedSqlPath}`,
+  `완료: 붕어빵 노점 ${stalls.length}곳, 방어 맛집 ${shops.length}곳 -> ${seedSqlPath} & ${migrationSqlPath}`,
 );
 

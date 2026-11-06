@@ -37,73 +37,75 @@ export const PlaceBrowse = ({ category, now }: PlaceBrowseProps) => {
           onAreaChange={browse.searchArea}
         />
       </div>
-      <div className="absolute inset-x-4 top-4 flex flex-col gap-2">
-        <LocationSearchBar
-          isSearching={locationSearch.status === "searching"}
-          message={locationSearchMessage(locationSearch.status)}
-          onSearch={locationSearch.moveToLocation}
-        />
-        <CategoryTabs current={category} />
-      </div>
-      <div className="absolute inset-x-0 bottom-0">
-        {placeActions.hasFailed && (
-          <p
-            role="alert"
-            className="mx-auto mb-2 w-fit rounded-full bg-ink px-4 py-2 text-label font-semibold text-white"
-          >
-            저장하지 못했어요. 다시 시도해 주세요
-          </p>
-        )}
-        {selectedPlace?.kind === "stall" && (
-          <StallDetailSheet
-            stall={selectedPlace}
-            myPosition={browse.myPosition}
-            now={browse.now}
-            actions={placeActions}
-            onClose={browse.closeDetail}
+      <div className="pointer-events-none absolute inset-0 flex flex-col gap-2">
+        <div className="pointer-events-auto mx-4 mt-4 flex flex-col gap-2">
+          <LocationSearchBar
+            isSearching={locationSearch.status === "searching"}
+            message={locationSearchMessage(locationSearch.status)}
+            onSearch={locationSearch.moveToLocation}
           />
-        )}
-        {selectedPlace?.kind === "shop" && (
-          <ShopDetailSheet
-            shop={selectedPlace}
-            myPosition={browse.myPosition}
-            actions={placeActions}
-            onClose={browse.closeDetail}
-          />
-        )}
-        {!selectedPlace && (
-          <>
-            <div className="flex items-end justify-between px-4 pb-4">
-              <LocateButton onClick={browse.panToMyPosition} />
-              <div className="flex flex-col items-end gap-2">
-                {browse.hasSavedOnlyToggle && (
-                  <SavedOnlyToggle
-                    isSavedOnly={browse.isSavedOnly}
-                    onToggle={browse.toggleSavedOnly}
-                  />
-                )}
-                <Link
-                  href={`/report/${category}`}
-                  className={`flex h-12 items-center gap-1.5 rounded-full pl-3.5 pr-4.5 text-body font-bold text-white shadow-overlay ${PLACE_CATEGORIES[category].solidClassName}`}
-                >
-                  <PlusIcon />
-                  제보하기
-                </Link>
-              </div>
-            </div>
-            <PlaceListSheet
-              category={category}
-              places={browse.listedPlaces}
-              isSavedOnly={browse.isSavedOnly}
-              sortKey={browse.sortKey}
+          <CategoryTabs current={category} />
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col justify-end">
+          {placeActions.hasFailed && (
+            <p
+              role="alert"
+              className="pointer-events-auto mx-auto mb-2 w-fit rounded-full bg-ink px-4 py-2 text-label font-semibold text-white"
+            >
+              저장하지 못했어요. 다시 시도해 주세요
+            </p>
+          )}
+          {selectedPlace?.kind === "stall" && (
+            <StallDetailSheet
+              stall={selectedPlace}
               myPosition={browse.myPosition}
               now={browse.now}
-              emptyMessage={browse.emptyMessage}
-              onSortChange={browse.changeSort}
-              onSelectPlace={browse.selectPlace}
+              actions={placeActions}
+              onClose={browse.closeDetail}
             />
-          </>
-        )}
+          )}
+          {selectedPlace?.kind === "shop" && (
+            <ShopDetailSheet
+              shop={selectedPlace}
+              myPosition={browse.myPosition}
+              actions={placeActions}
+              onClose={browse.closeDetail}
+            />
+          )}
+          {!selectedPlace && (
+            <>
+              <div className="flex items-end justify-between px-4 pb-4">
+                <LocateButton onClick={browse.panToMyPosition} className="pointer-events-auto" />
+                <div className="pointer-events-auto flex flex-col items-end gap-2">
+                  {browse.hasSavedOnlyToggle && (
+                    <SavedOnlyToggle
+                      isSavedOnly={browse.isSavedOnly}
+                      onToggle={browse.toggleSavedOnly}
+                    />
+                  )}
+                  <Link
+                    href={`/report/${category}`}
+                    className={`flex h-12 items-center gap-1.5 rounded-full pl-3.5 pr-4.5 text-body font-bold text-white shadow-overlay ${PLACE_CATEGORIES[category].solidClassName}`}
+                  >
+                    <PlusIcon />
+                    제보하기
+                  </Link>
+                </div>
+              </div>
+              <PlaceListSheet
+                category={category}
+                places={browse.listedPlaces}
+                isSavedOnly={browse.isSavedOnly}
+                sortKey={browse.sortKey}
+                myPosition={browse.myPosition}
+                now={browse.now}
+                emptyMessage={browse.emptyMessage}
+                onSortChange={browse.changeSort}
+                onSelectPlace={browse.selectPlace}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
